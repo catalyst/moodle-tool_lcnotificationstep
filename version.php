@@ -24,9 +24,11 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2023100400;
-$plugin->requires  = 2022041200;
+$plugin->requires  = 2020061500;
 $plugin->component = 'tool_lcnotificationstep';
 
-$plugin->dependencies = array(
-    'tool_lifecycle' => 2023050201
-);
+$plugin->dependencies = [
+    'tool_lifecycle' => 2023050201,
+];
+
+$plugin->supported = [39, 450];

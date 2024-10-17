@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Trigger test for end date delay trigger.
- *
- * @package    tool_lcnotificationstep
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-namespace tool_lcnotificationstep\tests;
+namespace tool_lcnotificationstep;
 
+use stdClass;
 use tool_lifecycle\action;
 use tool_lifecycle\local\entity\trigger_subplugin;
 use tool_lifecycle\local\manager\process_manager;
@@ -31,13 +26,13 @@ use tool_lifecycle\local\manager\workflow_manager;
 use tool_lifecycle\processor;
 use tool_lifecycle\settings_type;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * Trigger test for start date delay trigger.
+ * Email notification.
  *
  * @package    tool_lcnotificationstep
+ * @copyright  2024 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * /
  */
 class step_test extends \advanced_testcase {
     /** Icon of the manual trigger. */
@@ -58,7 +53,10 @@ class step_test extends \advanced_testcase {
     /** @var stdClass $teacher a teacher. */
     private $teacher;
 
-    public function setUp() : void {
+    /**
+     * Set up the test.
+     */
+    public function setUp(): void {
         global $USER, $DB;
 
         // We do not need a sesskey check in these tests.
@@ -126,7 +124,7 @@ class step_test extends \advanced_testcase {
         $emails = $sink->get_messages();
         $this->assertCount(2, $emails);
 
-        // Get email send to teacher (users with role are added first, then external emails)
+        // Get email send to teacher (users with role are added first, then external emails).
         $email = $emails[0];
         $this->assertEquals($this->teacher->email, $email->to);
         $this->assertEquals('Subject ' . $this->course->shortname, $email->subject);
@@ -146,5 +144,4 @@ class step_test extends \advanced_testcase {
         $this->assertStringContainsString('Plain content ' . $this->course->fullname, quoted_printable_decode($email->body));
         $this->assertStringContainsString('HTML content ' . $this->course->fullname, quoted_printable_decode($email->body));
     }
-
 }

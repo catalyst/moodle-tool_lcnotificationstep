@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * User notification
+ * Email notification
  *
- * @package    core
+ * @package    tool_lcnotificationstep
+ * @copyright  2024 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

@@ -16,10 +16,11 @@
 
 namespace tool_lcnotificationstep\lifecycle;
 
+defined('MOODLE_INTERNAL') || die();
+
 global $CFG;
 require_once($CFG->dirroot . '/admin/tool/lifecycle/step/lib.php');
 
-use core\message\message;
 use core_user;
 use tool_lifecycle\local\manager\settings_manager;
 use tool_lifecycle\local\response\step_response;
@@ -27,20 +28,41 @@ use tool_lifecycle\settings_type;
 use tool_lifecycle\step\instance_setting;
 use tool_lifecycle\step\libbase;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Email notification.
+ *
+ * @package    tool_lcnotificationstep
+ * @copyright  2024 Catalyst IT
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class step extends libbase {
-    public function get_subpluginname()
-    {
+    /**
+     * Get the subplugin name.
+     *
+     * @return string
+     */
+    public function get_subpluginname() {
         return 'tool_lcnotificationstep';
     }
 
+    /**
+     * Get the description.
+     *
+     * @return string
+     */
     public function get_plugin_description() {
         return "User notification step";
     }
 
-    public function process_course($processid, $instanceid, $course)
-    {
+    /**
+     * Processes the course.
+     *
+     * @param int $processid the process id.
+     * @param int $instanceid step instance id.
+     * @param object $course the course object.
+     * @return step_response
+     */
+    public function process_course($processid, $instanceid, $course) {
         $users = [];
 
         // Get subject and content from settings.
@@ -67,7 +89,7 @@ class step extends libbase {
             $user = new \stdClass();
             $user->id = -1;
             $user->email = $email;
-            $user->mailformat = 1; // HTML
+            $user->mailformat = 1;
             $users[] = $user;
         }
 
@@ -96,12 +118,10 @@ class step extends libbase {
     /**
      * Replace placeholders in strings.
      *
-     * @param $strings
-     * @param $courseid
-     * @param $userid
+     * @param string $strings the text to replace.
+     * @param int $courseid the course id.
+     * @param int $userid the user id.
      * @return array|string|string[]|null
-     * @throws \coding_exception
-     * @throws \dml_exception
      */
     private function replace_placeholders($strings, $courseid, $userid = null) {
         $patterns = [];
@@ -117,7 +137,7 @@ class step extends libbase {
         $patterns[] = '##coursefullname##';
         $replacements[] = $course->fullname;
 
-        // Current date
+        // Current date.
         $patterns[] = '##currentdate##';
         $replacements[] = userdate(time(), get_string('strftimedatetime', 'core_langconfig'));
 
@@ -149,6 +169,11 @@ class step extends libbase {
         return $result;
     }
 
+    /**
+     * Get the instance settings.
+     *
+     * @return array
+     */
     public function instance_settings() {
         return [
             new instance_setting('roles', PARAM_SEQUENCE, true),
@@ -159,6 +184,11 @@ class step extends libbase {
         ];
     }
 
+    /**
+     * Extend the add instance form definition.
+     *
+     * @param \moodleform $mform the form.
+     */
     public function extend_add_instance_form_definition($mform) {
 
         // Role selection.
@@ -199,7 +229,5 @@ class step extends libbase {
         $mform->addElement('editor', $elementname, get_string('email_content_html', 'tool_lcnotificationstep'));
         $mform->addHelpButton($elementname, 'email_content_html', 'tool_lcnotificationstep');
         $mform->setType($elementname, PARAM_RAW);
-
     }
-
 }

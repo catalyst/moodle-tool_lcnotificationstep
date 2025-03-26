@@ -53,6 +53,9 @@ class step_test extends \advanced_testcase {
     /** @var stdClass $teacher a teacher. */
     private $teacher;
 
+    /** @var int Step id. */
+    protected $stepid;
+
     /**
      * Set up the test.
      */
@@ -75,12 +78,13 @@ class step_test extends \advanced_testcase {
 
         // Delay step.
         $step = $generator->create_step("instance1", "tool_lcnotificationstep", $manualworkflow->id);
+        $this->stepid = $step->id;
 
         $teacherroleid = $DB->get_field('role', 'id', ['shortname' => 'teacher']);
         $editingteacherroleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
         $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
 
-        settings_manager::save_settings($step->id, settings_type::STEP,
+        settings_manager::save_settings($this->stepid, settings_type::STEP,
             "tool_lcnotificationstep",
             [
                 "roles" => "$teacherroleid, $editingteacherroleid",
@@ -139,6 +143,41 @@ class step_test extends \advanced_testcase {
 
         // External Email.
         $email = $emails[1];
+        $this->assertEquals('external@email.com', $email->to);
+        $this->assertEquals('Subject ' . $this->course->shortname, $email->subject);
+        $this->assertStringContainsString('Plain content ' . $this->course->fullname, quoted_printable_decode($email->body));
+        $this->assertStringContainsString('HTML content ' . $this->course->fullname, quoted_printable_decode($email->body));
+    }
+
+    /**
+     * Test notification sends only to external emails when no roles are specified.
+     */
+    public function test_notification_step_with_external_emails_only() {
+        $this->resetAfterTest();
+
+        settings_manager::save_settings($this->stepid, settings_type::STEP,
+            "tool_lcnotificationstep",
+            [
+                "roles" => "",
+                "emails" => 'external@email.com',
+                "subject" => 'Subject ##courseshortname##',
+                "content" => 'Plain content ##userfirstname## ##userlastname## ##coursefullname##',
+                "contenthtml" => 'HTML content ##userfirstname## ##userlastname## ##coursefullname##',
+            ]
+        );
+
+        // Run trigger.
+        process_manager::manually_trigger_process($this->course->id, $this->trigger->id);
+
+        // Check that email was sent.
+        $sink = $this->redirectEmails();
+        $processor = new processor();
+        $processor->process_courses();
+        $emails = $sink->get_messages();
+        $this->assertCount(1, $emails);
+
+        // External Email.
+        $email = $emails[0];
         $this->assertEquals('external@email.com', $email->to);
         $this->assertEquals('Subject ' . $this->course->shortname, $email->subject);
         $this->assertStringContainsString('Plain content ' . $this->course->fullname, quoted_printable_decode($email->body));

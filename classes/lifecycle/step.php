@@ -77,8 +77,10 @@ class step extends libbase {
         // Get all users with given roles in the course.
         $coursecontext = \context_course::instance($course->id);
         foreach ($roles as $roleid) {
-            $roleusers = get_role_users($roleid, $coursecontext);
-            $users = array_merge($users, $roleusers);
+            if (!empty($roleid)) {
+                $roleusers = get_role_users($roleid, $coursecontext);
+                $users = array_merge($users, $roleusers);
+            }
         }
 
         // Get additional email addresses.
@@ -204,7 +206,6 @@ class step extends libbase {
         ];
         $mform->addElement('autocomplete', 'roles', get_string('roles'), $choices, $options);
         $mform->setType('roles', PARAM_SEQUENCE);
-        $mform->addRule('roles', get_string('emptyroles', 'tool_lcnotificationstep'), 'required', null, 'client');
 
         // List of email address to send.
         $elementname = 'emails';

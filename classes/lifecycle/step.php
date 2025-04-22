@@ -70,17 +70,21 @@ class step extends libbase {
         $contenttemplate = settings_manager::get_settings($instanceid, settings_type::STEP)['content'];
         $contenthtmltemplate = settings_manager::get_settings($instanceid, settings_type::STEP)['contenthtml'];
 
-        // Get specified roles to send notification.
-        $roles = settings_manager::get_settings($instanceid, settings_type::STEP)['roles'];
-        $roles = explode(',', $roles);
+        try {
+            // Get specified roles to send notification.
+            $roles = settings_manager::get_settings($instanceid, settings_type::STEP)['roles'];
+            $roles = explode(',', $roles);
 
-        // Get all users with given roles in the course.
-        $coursecontext = \context_course::instance($course->id);
-        foreach ($roles as $roleid) {
-            if (!empty($roleid)) {
-                $roleusers = get_role_users($roleid, $coursecontext);
-                $users = array_merge($users, $roleusers);
+            // Get all users with given roles in the course.
+            $coursecontext = \context_course::instance($course->id);
+            foreach ($roles as $roleid) {
+                if (!empty($roleid)) {
+                    $roleusers = get_role_users($roleid, $coursecontext);
+                    $users = array_merge($users, $roleusers);
+                }
             }
+        } catch (\dml_missing_record_exception $e) {
+            mtrace("The course with id {$course->id} no longer exists.");
         }
 
         // Get additional email addresses.
@@ -129,15 +133,37 @@ class step extends libbase {
         $patterns = [];
         $replacements = [];
 
-        $course = get_course($courseid);
+        try {
+            $course = get_course($courseid);
 
-        // Replace course short name.
-        $patterns[] = '##courseshortname##';
-        $replacements[] = $course->shortname;
+            // Replace course short name.
+            $patterns[] = '##courseshortname##';
+            $replacements[] = $course->shortname;
 
-        // Replace course full name.
-        $patterns[] = '##coursefullname##';
-        $replacements[] = $course->fullname;
+            // Replace course short name.
+            $patterns[] = '##courseid##';
+            $replacements[] = $courseid;
+
+            // Replace course full name.
+            $patterns[] = '##coursefullname##';
+            $replacements[] = $course->fullname;
+
+        } catch (\dml_missing_record_exception $e) {
+            mtrace("The course with id {$courseid} no longer exists.");
+
+            // Replace course short name.
+            $patterns[] = '##courseshortname##';
+            $replacements[] = '';
+
+            // Replace course short name.
+            $patterns[] = '##courseid##';
+            $replacements[] = $courseid;
+
+            // Replace course full name.
+            $patterns[] = '##coursefullname##';
+            $replacements[] = '';
+
+        }
 
         // Current date.
         $patterns[] = '##currentdate##';

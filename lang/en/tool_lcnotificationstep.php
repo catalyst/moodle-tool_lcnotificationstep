@@ -31,6 +31,7 @@ $string['emptyroles'] = 'Roles must not be empty.';
 $placeholder = '<p>' . 'You can use the following placeholders:'
     . '<br>' . 'Course short name: ##courseshortname##'
     . '<br>' . 'Course fullname : ##coursefullname##'
+    . '<br>' . 'Course id : ##courseid##'
     . '<br>' . 'Current date: ##currentdate##'
     . '<br>' . 'User first name: ##userfirstname##'
     . '<br>' . 'User last name: ##userlastname##'

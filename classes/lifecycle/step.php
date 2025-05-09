@@ -153,7 +153,7 @@ class step extends libbase {
 
             // Replace course short name.
             $patterns[] = '##courseshortname##';
-            $replacements[] = '';
+            $replacements[] = 'Course short name not found';
 
             // Replace course short name.
             $patterns[] = '##courseid##';
@@ -161,7 +161,7 @@ class step extends libbase {
 
             // Replace course full name.
             $patterns[] = '##coursefullname##';
-            $replacements[] = '';
+            $replacements[] = 'Course full name not found';
 
         }
 

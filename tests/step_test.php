@@ -225,4 +225,54 @@ class step_test extends \advanced_testcase {
         $this->assertStringContainsString('Plain content ' . $randomcourseid, quoted_printable_decode($email->body));
         $this->assertStringContainsString('HTML content ' . $randomcourseid, quoted_printable_decode($email->body));
     }
+
+    /**
+     * Test notification sends when course no longer exists.
+     */
+    public function test_notification_step_for_random_courseid_with_id() {
+        $this->resetAfterTest();
+
+        $randomcourseid = 12;
+
+        ob_start();
+
+        settings_manager::save_settings($this->stepid, settings_type::STEP,
+            "tool_lcnotificationstep",
+            [
+                "roles" => "",
+                "emails" => 'external@email.com',
+                "subject" => 'Subject ##courseid##',
+                "content" => 'Plain content ##coursefullname## ##courseshortname## ##courseid##',
+                "contenthtml" => 'HTML content ##coursefullname## ##courseshortname## ##courseid##',
+            ]
+        );
+
+        // Run trigger.
+        process_manager::manually_trigger_process($randomcourseid, $this->trigger->id);
+
+        // Check that email was sent.
+        $sink = $this->redirectEmails();
+        $processor = new processor();
+        $processor->process_courses();
+        $emails = $sink->get_messages();
+
+        ob_end_clean();
+
+        $this->assertCount(1, $emails);
+
+        // External Email.
+        $email = $emails[0];
+        $this->assertEquals('external@email.com', $email->to);
+        $this->assertEquals('Subject ' . $randomcourseid, $email->subject);
+        $this->assertStringContainsString(
+            'Plain content Course full name not found Course short name not found ' . $randomcourseid,
+            quoted_printable_decode($email->body)
+        );
+
+        $this->assertStringContainsString(
+            'HTML content Course full name not found Course short name not found ' . $randomcourseid,
+            quoted_printable_decode($email->body)
+        );
+
+    }
 }

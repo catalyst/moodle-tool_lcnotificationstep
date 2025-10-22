@@ -147,7 +147,6 @@ class step extends libbase {
             // Replace course full name.
             $patterns[] = '##coursefullname##';
             $replacements[] = $course->fullname;
-
         } catch (\dml_missing_record_exception $e) {
             mtrace("The course with id {$courseid} no longer exists.");
         }
@@ -252,7 +251,12 @@ class step extends libbase {
      * @param array $settings array containing the settings from the db.
      */
     public function extend_add_instance_form_definition_after_data($mform, $settings) {
-        $mform->setDefault('contenthtml',
-                ['text' => isset($settings['contenthtml']) ? $settings['contenthtml'] : '', 'format' => FORMAT_HTML]);
+        $mform->setDefault(
+            'contenthtml',
+            [
+                'text' => isset($settings['contenthtml']) ? $settings['contenthtml'] : '',
+                'format' => FORMAT_HTML,
+            ]
+        );
     }
 }

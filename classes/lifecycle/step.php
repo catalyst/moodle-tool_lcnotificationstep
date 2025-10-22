@@ -150,19 +150,6 @@ class step extends libbase {
 
         } catch (\dml_missing_record_exception $e) {
             mtrace("The course with id {$courseid} no longer exists.");
-
-            // Replace course short name.
-            $patterns[] = '##courseshortname##';
-            $replacements[] = 'Course short name not found';
-
-            // Replace course short name.
-            $patterns[] = '##courseid##';
-            $replacements[] = $courseid;
-
-            // Replace course full name.
-            $patterns[] = '##coursefullname##';
-            $replacements[] = 'Course full name not found';
-
         }
 
         // Current date.

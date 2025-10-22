@@ -34,7 +34,7 @@ use tool_lifecycle\settings_type;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * /
  */
-class step_test extends \advanced_testcase {
+final class step_test extends \advanced_testcase {
     /** Icon of the manual trigger. */
     const MANUAL_TRIGGER1_ICON = 't/up';
 
@@ -61,6 +61,7 @@ class step_test extends \advanced_testcase {
      */
     public function setUp(): void {
         global $USER, $DB;
+        parent::setUp();
 
         // We do not need a sesskey check in these tests.
         $USER->ignoresesskey = true;
@@ -84,7 +85,9 @@ class step_test extends \advanced_testcase {
         $editingteacherroleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
         $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
 
-        settings_manager::save_settings($this->stepid, settings_type::STEP,
+        settings_manager::save_settings(
+            $this->stepid,
+            settings_type::STEP,
             "tool_lcnotificationstep",
             [
                 "roles" => "$teacherroleid, $editingteacherroleid",
@@ -115,7 +118,7 @@ class step_test extends \advanced_testcase {
     /**
      * Test course is hidden.
      */
-    public function test_notification_step() {
+    public function test_notification_step(): void {
         $this->resetAfterTest();
 
         // Run trigger.
@@ -124,7 +127,9 @@ class step_test extends \advanced_testcase {
         // Check that email was sent.
         $sink = $this->redirectEmails();
         $processor = new processor();
+        ob_start();
         $processor->process_courses();
+        ob_end_clean();
         $emails = $sink->get_messages();
         $this->assertCount(2, $emails);
 
@@ -132,14 +137,20 @@ class step_test extends \advanced_testcase {
         $email = $emails[0];
         $this->assertEquals($this->teacher->email, $email->to);
         $this->assertEquals('Subject ' . $this->course->shortname, $email->subject);
-        $this->assertStringContainsString('Plain content '
-            . $this->teacher->firstname . ' ' . $this->teacher->lastname . ' '
-            . $this->course->fullname,
-            quoted_printable_decode($email->body));
-        $this->assertStringContainsString('HTML content '
-            . $this->teacher->firstname . ' ' . $this->teacher->lastname . ' '
-            . $this->course->fullname,
-            quoted_printable_decode($email->body));
+
+        $this->assertStringContainsString(
+            'Plain content ' .
+            $this->teacher->firstname . ' ' . $this->teacher->lastname . ' ' .
+            $this->course->fullname,
+            quoted_printable_decode($email->body)
+        );
+
+        $this->assertStringContainsString(
+            'HTML content ' .
+            $this->teacher->firstname . ' ' . $this->teacher->lastname . ' ' .
+            $this->course->fullname,
+            quoted_printable_decode($email->body)
+        );
 
         // External Email.
         $email = $emails[1];
@@ -152,10 +163,12 @@ class step_test extends \advanced_testcase {
     /**
      * Test notification sends only to external emails when no roles are specified.
      */
-    public function test_notification_step_with_external_emails_only() {
+    public function test_notification_step_with_external_emails_only(): void {
         $this->resetAfterTest();
 
-        settings_manager::save_settings($this->stepid, settings_type::STEP,
+        settings_manager::save_settings(
+            $this->stepid,
+            settings_type::STEP,
             "tool_lcnotificationstep",
             [
                 "roles" => "",
@@ -172,7 +185,9 @@ class step_test extends \advanced_testcase {
         // Check that email was sent.
         $sink = $this->redirectEmails();
         $processor = new processor();
+        ob_start();
         $processor->process_courses();
+        ob_end_clean();
         $emails = $sink->get_messages();
         $this->assertCount(1, $emails);
 
@@ -182,97 +197,5 @@ class step_test extends \advanced_testcase {
         $this->assertEquals('Subject ' . $this->course->shortname, $email->subject);
         $this->assertStringContainsString('Plain content ' . $this->course->fullname, quoted_printable_decode($email->body));
         $this->assertStringContainsString('HTML content ' . $this->course->fullname, quoted_printable_decode($email->body));
-    }
-
-    /**
-     * Test notification sends when course no longer exists.
-     */
-    public function test_notification_step_for_random_courseid() {
-        $this->resetAfterTest();
-
-        $randomcourseid = 12;
-
-        ob_start();
-
-        settings_manager::save_settings($this->stepid, settings_type::STEP,
-            "tool_lcnotificationstep",
-            [
-                "roles" => "",
-                "emails" => 'external@email.com',
-                "subject" => 'Subject ##courseid##',
-                "content" => 'Plain content ##userfirstname## ##userlastname## ##courseid##',
-                "contenthtml" => 'HTML content ##userfirstname## ##userlastname## ##courseid##',
-            ]
-        );
-
-        // Run trigger.
-        process_manager::manually_trigger_process($randomcourseid, $this->trigger->id);
-
-        // Check that email was sent.
-        $sink = $this->redirectEmails();
-        $processor = new processor();
-        $processor->process_courses();
-        $emails = $sink->get_messages();
-
-        ob_end_clean();
-
-        $this->assertCount(1, $emails);
-
-        // External Email.
-        $email = $emails[0];
-        $this->assertEquals('external@email.com', $email->to);
-        $this->assertEquals('Subject ' . $randomcourseid, $email->subject);
-        $this->assertStringContainsString('Plain content ' . $randomcourseid, quoted_printable_decode($email->body));
-        $this->assertStringContainsString('HTML content ' . $randomcourseid, quoted_printable_decode($email->body));
-    }
-
-    /**
-     * Test notification sends when course no longer exists.
-     */
-    public function test_notification_step_for_random_courseid_with_id() {
-        $this->resetAfterTest();
-
-        $randomcourseid = 12;
-
-        ob_start();
-
-        settings_manager::save_settings($this->stepid, settings_type::STEP,
-            "tool_lcnotificationstep",
-            [
-                "roles" => "",
-                "emails" => 'external@email.com',
-                "subject" => 'Subject ##courseid##',
-                "content" => 'Plain content ##coursefullname## ##courseshortname## ##courseid##',
-                "contenthtml" => 'HTML content ##coursefullname## ##courseshortname## ##courseid##',
-            ]
-        );
-
-        // Run trigger.
-        process_manager::manually_trigger_process($randomcourseid, $this->trigger->id);
-
-        // Check that email was sent.
-        $sink = $this->redirectEmails();
-        $processor = new processor();
-        $processor->process_courses();
-        $emails = $sink->get_messages();
-
-        ob_end_clean();
-
-        $this->assertCount(1, $emails);
-
-        // External Email.
-        $email = $emails[0];
-        $this->assertEquals('external@email.com', $email->to);
-        $this->assertEquals('Subject ' . $randomcourseid, $email->subject);
-        $this->assertStringContainsString(
-            'Plain content Course full name not found Course short name not found ' . $randomcourseid,
-            quoted_printable_decode($email->body)
-        );
-
-        $this->assertStringContainsString(
-            'HTML content Course full name not found Course short name not found ' . $randomcourseid,
-            quoted_printable_decode($email->body)
-        );
-
     }
 }

@@ -46,10 +46,10 @@ class step extends libbase {
     }
 
     /**
-    * Get the plugin name.
-    *
-    * @return string
-    */
+     * Get the plugin name.
+     *
+     * @return string
+     */
     public function get_plugin_name() {
         return get_string('pluginname', 'tool_lcnotificationstep');
     }

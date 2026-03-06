@@ -23,6 +23,7 @@
  */
 
 $string['pluginname'] = 'User notification step';
+$string['plugindescription'] = 'This step allows you to send notifications to users.';
 $string['privacy:metadata'] = 'The plugin does not store any personal data.';
 $string['roles_noselection'] = 'Please select one or more roles.';
 $string['emptyroles'] = 'Roles must not be empty.';
